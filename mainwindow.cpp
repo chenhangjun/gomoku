@@ -60,7 +60,7 @@ void MainWindow::ShowLabel() {  //设置规则介绍文本
     label->setText(strText);
 
     //设置标签大小(100, 100)和位置(200, 200)
-    label->setGeometry(QRect(200, 200, 100, 100));
+    label->setGeometry(QRect(200, 200, 100, 200));
 
     //设置标签内文字格式
     label->setFont(QFont(QString::fromLocal8Bit("微软雅黑"), 13));

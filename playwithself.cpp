@@ -1,14 +1,23 @@
 #include "playwithself.h"
 #include "ui_playwithself.h"
 #include <QMessageBox>
-#include <QHBoxLayout>
-#include <QLCDNumber>
 
 PlayWithSelf::PlayWithSelf(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::PlayWithSelf)
 {
     flag = 0;
+
+    lcdNumber = new QLCDNumber(this);
+    lcdNumber->setGeometry(800, 200, 60, 30);
+    lcdNumber->setDigitCount(2);
+    lcdNumber->setSegmentStyle(QLCDNumber::Flat);
+
+    lcdNumber->display("30");
+    lcdNumber->setVisible(false);
+
+
+
     setFixedSize(1000, 670);
     memset(chessboard, 0, sizeof(chessboard));
     PlayRandom();
@@ -21,15 +30,12 @@ void PlayWithSelf::PlayRandom()
 {
     //ui->setupUi(this);
 
-    QWidget *w = new QWidget();
 
-    button = new QPushButton();
+
+    button = new QPushButton(this);
     button->setText("Play");
     button->setGeometry(770, 270, 100, 40);
-
-    w = button;
-    layout()->addWidget(w);
-    this->layout();
+    button->show();
 
     //掷骰子前预显示图片
     label = new QLabel(this);
@@ -84,9 +90,10 @@ void PlayWithSelf::mouseReleaseEvent(QMouseEvent *e)
         return;
     }
 
-    QTimer *timer = new QTimer(this);
-    connect(timer, SIGNAL(timeout()), this, SLOT(CountDown()));
-    timer->start(1000);   //延时
+    delete timer;
+    timer = new QTimer();
+    Timer();
+
 
     //显示当前行棋方
     if(player == -1) {
@@ -128,7 +135,10 @@ void PlayWithSelf::mouseReleaseEvent(QMouseEvent *e)
         }
 
     }
+
+
     update();  //更新
+
 }
 
 //判断该点是否已有棋子，从而改变鼠标状态
@@ -252,7 +262,20 @@ void PlayWithSelf::ShowStatus()
     info3->show();
     info3->setFont(QFont(QString::fromLocal8Bit("微软雅黑"), 13));
 
+    lcdNumber->setVisible(true);
+    Timer();
 
+}
+
+void PlayWithSelf::Timer()
+{
+    countdown = 30;  //时间重置
+
+    timer->start();
+    connect(timer, SIGNAL(timeout()), this, SLOT(CountDown()));
+    timer->setInterval(1000);
+
+     //延时
 }
 
 //掷骰子
@@ -302,13 +325,7 @@ void PlayWithSelf::ShowRandom() {
     label->setMovie(movie);
     movie->start();
 
-    //label->setAutoFillBackground(true);
     label->setAlignment(Qt::AlignCenter);  //居中显示
-
-    //白色背景
-   /* QPalette palette;
-    palette.setColor(QPalette::Background, Qt::white);
-    label->setPalette(palette);*/
     label->show();
 
     label1->setFont(QFont(QString::fromLocal8Bit("微软雅黑"), 13));
@@ -322,13 +339,11 @@ void PlayWithSelf::ShowRandom() {
     label1->show();  //显示谁先手
     button->setDisabled(true); //掷骰子按钮不可点击(只有一次)
 
-    QWidget *w = new QWidget();
-    button1 = new QPushButton();
+    button1 = new QPushButton(this);
     button1->setText("OK");
     button1->setGeometry(840, 350, 70, 30);
-    w = button1;
-    layout()->addWidget(w);
-    layout();
+    button1->show();
+
     //button1 点击销毁一些控件
 
     info1->setGeometry(700, 100, 150, 30);
@@ -352,21 +367,25 @@ void PlayWithSelf::StartPlay()
 
     ShowStatus();  //显示游戏时信息
 }
-/*
+
 //倒计时
 void PlayWithSelf::CountDown()
  {
-    QLCDNumber *lcdNumber = ui->
-    lcdNumber->setDigitCount(2);
-    lcdNumber->setGeometry(800, 200, 100, 30);
-    //QWidget *w = new QWidget();
+    QString strTime = QString::number(countdown);
+    lcdNumber->display(strTime);  //显示时间
+
     if(countdown != 0)
     {
         countdown -= 1;
-        QString strTime = QString::number(countdown);
-        lcdNumber->display(strTime);
-        // w = lcdNumber;
-        //layout()->addWidget(w);
-      //  this->layout();
+    } else {
+        if(player == 1) {
+            player = -1;
+            info2->setText("当前行棋方:       白");
+        } else {
+            player = 1;
+            info2->setText("当前行棋方:       黑");
+        }
+        Timer();
     }
- }*/
+ }
+
