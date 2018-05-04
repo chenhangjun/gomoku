@@ -13,8 +13,7 @@ PlayWithSelf::PlayWithSelf(QWidget *parent) :
     lcdNumber->setGeometry(800, 200, 60, 30);
     lcdNumber->setDigitCount(2);
     lcdNumber->setSegmentStyle(QLCDNumber::Flat);
-
-    lcdNumber->display("30");
+   // lcdNumber->display("30");
     lcdNumber->setVisible(false);
 
 
@@ -273,6 +272,10 @@ void PlayWithSelf::Timer()
 {
     countdown = 30;  //时间重置
 
+    QPalette lcdpat = lcdNumber->palette();
+    lcdpat.setColor(QPalette::Normal,QPalette::WindowText,Qt::black);
+    lcdNumber->setPalette(lcdpat);
+
     timecounter = 0;
 
     timer->start();
@@ -380,6 +383,7 @@ void PlayWithSelf::CountDown()
     QString strTime = QString::number(countdown);
     lcdNumber->display(strTime);  //显示时间
 
+    QPalette lcdpat = lcdNumber->palette();
 
     if(timecounter < 1000) {
         return ;
@@ -387,6 +391,10 @@ void PlayWithSelf::CountDown()
 
     if(countdown != 0)
     {
+        if(countdown <= 6) {
+            lcdpat.setColor(QPalette::Normal,QPalette::WindowText,Qt::red);
+            lcdNumber->setPalette(lcdpat);
+        }
         countdown -= 1;
     } else {
         //timer->stop();
@@ -398,6 +406,8 @@ void PlayWithSelf::CountDown()
             info2->setText("当前行棋方:       黑");
         }
         countdown = 30;
+        lcdpat.setColor(QPalette::Normal,QPalette::WindowText,Qt::black);
+        lcdNumber->setPalette(lcdpat);
        // Timer();
     }
 
