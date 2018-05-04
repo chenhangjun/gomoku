@@ -8,6 +8,7 @@ PlayWithSelf::PlayWithSelf(QWidget *parent) :
 {
     flag = 0;
 
+    //显示倒计时的标签
     lcdNumber = new QLCDNumber(this);
     lcdNumber->setGeometry(800, 200, 60, 30);
     lcdNumber->setDigitCount(2);
@@ -263,6 +264,7 @@ void PlayWithSelf::ShowStatus()
     info3->setFont(QFont(QString::fromLocal8Bit("微软雅黑"), 13));
 
     lcdNumber->setVisible(true);
+
     Timer();
 
 }
@@ -271,9 +273,11 @@ void PlayWithSelf::Timer()
 {
     countdown = 30;  //时间重置
 
+    timecounter = 0;
+
     timer->start();
     connect(timer, SIGNAL(timeout()), this, SLOT(CountDown()));
-    timer->setInterval(1000);
+    timer->setInterval(10);
 
      //延时
 }
@@ -371,13 +375,21 @@ void PlayWithSelf::StartPlay()
 //倒计时
 void PlayWithSelf::CountDown()
  {
+
+    timecounter += 10;
     QString strTime = QString::number(countdown);
     lcdNumber->display(strTime);  //显示时间
+
+
+    if(timecounter < 1000) {
+        return ;
+    }
 
     if(countdown != 0)
     {
         countdown -= 1;
     } else {
+        //timer->stop();
         if(player == 1) {
             player = -1;
             info2->setText("当前行棋方:       白");
@@ -385,7 +397,11 @@ void PlayWithSelf::CountDown()
             player = 1;
             info2->setText("当前行棋方:       黑");
         }
-        Timer();
+        countdown = 30;
+       // Timer();
     }
+
+    timecounter = 0;
+
  }
 
