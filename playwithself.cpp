@@ -1,6 +1,7 @@
 #include "playwithself.h"
 #include "ui_playwithself.h"
 #include <QMessageBox>
+#include <QSound>
 
 PlayWithSelf::PlayWithSelf(QWidget *parent) :
     QMainWindow(parent),
@@ -385,16 +386,40 @@ void PlayWithSelf::CountDown()
 
     QPalette lcdpat = lcdNumber->palette();
 
-    if(timecounter < 1000) {
-        return ;
+    if(countdown > 5) {
+        if(timecounter < 1000) {
+            return ;
+        }
     }
 
-    if(countdown != 0)
-    {
-        if(countdown <= 6) {
-            lcdpat.setColor(QPalette::Normal,QPalette::WindowText,Qt::red);
-            lcdNumber->setPalette(lcdpat);
+    if(countdown <= 5) {
+
+        if(timecounter == 10) {
+            QSound::play("/home/chen/Downloads/countdown.wav");
         }
+
+        //闪烁频率0.2s
+        if(timecounter % 200 != 0) {
+            if(timecounter < 1000) {
+                return ;
+            }
+        } else {
+            if(timecounter  % 400 == 0) {
+                lcdpat.setColor(QPalette::Normal,QPalette::WindowText,Qt::black);
+                lcdNumber->setPalette(lcdpat);
+            } else {
+                lcdpat.setColor(QPalette::Normal,QPalette::WindowText,Qt::red);
+                lcdNumber->setPalette(lcdpat);
+            }
+
+        }
+
+        if(timecounter < 1000) {
+            return ;
+        }
+    }
+
+    if(countdown != 0) {
         countdown -= 1;
     } else {
         //timer->stop();
