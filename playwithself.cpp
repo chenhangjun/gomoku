@@ -91,23 +91,24 @@ void PlayWithSelf::mouseReleaseEvent(QMouseEvent *e)
         return;
     }
 
-    delete timer;
-    timer = new QTimer();
-    Timer();
-
-
-    //显示当前行棋方
-    if(player == -1) {
-        info2->setText("当前行棋方:       黑");
-    } else {
-        info2->setText("当前行棋方:       白");
-    }
-
     this->setMouseTracking(true);
     mouseMoveEvent(e);
 
     int x, y; //鼠标对应的二维坐标
     if(e->x() >= 20 && e->x() <= 650 && e->y() >= 20 && e->y() <= 650) {
+
+        //倒计时
+        delete timer;
+        timer = new QTimer();
+        Timer();
+
+        //显示当前行棋方
+        if(player == -1) {
+            info2->setText("当前行棋方:       黑");
+        } else {
+            info2->setText("当前行棋方:       白");
+        }
+
         x = (e->x() - 20) / 40;  //棋点横坐标
         y = (e->y() - 20) / 40;  //棋点纵坐标
         if(!chessboard[x][y]) {
