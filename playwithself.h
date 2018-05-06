@@ -37,6 +37,7 @@ private:
     bool JudgeWin(int, int);  //是否赢了
     int player;    // -1代表白方，1代表黑方；
     int flag;  //是否掷过骰子
+    int full;  //判断是否棋盘填满而平局
     int countdown;  //倒计时30s
     int timecounter;  //计时间， 1000ms
     int wx, wy, bx, by;  //黑白双方最后落子坐标

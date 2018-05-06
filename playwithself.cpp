@@ -9,6 +9,7 @@ PlayWithSelf::PlayWithSelf(QWidget *parent) :
     ui(new Ui::PlayWithSelf)
 {
     flag = 0;
+    full = 1;
 
     //显示倒计时的标签
     lcdNumber = new QLCDNumber(this);
@@ -17,7 +18,6 @@ PlayWithSelf::PlayWithSelf(QWidget *parent) :
     lcdNumber->setSegmentStyle(QLCDNumber::Flat);
    // lcdNumber->display("30");
     lcdNumber->setVisible(false);
-
 
 
     setFixedSize(970, 640);
@@ -161,6 +161,7 @@ void PlayWithSelf::mouseReleaseEvent(QMouseEvent *e)
 
         x = (e->x() - 25) / 40;  //棋点横坐标
         y = (e->y() - 25) / 40;  //棋点纵坐标
+
         if(!chessboard[x][y]) {
 
             //倒计时
@@ -204,8 +205,25 @@ void PlayWithSelf::mouseReleaseEvent(QMouseEvent *e)
 
         }
 
-    }
+        //判断是否平局
+        full = 1;  //先设棋盘已满
+        for(int i = 0; i < 15; i++) {
+            for(int j = 0; j < 15; j++) {
+                if(!chessboard[i][j]) {
+                    full = 0; //棋盘未满
+                    break;
+                }
+            }
+            if(full == 0) {
+                break;
+            }
+        }
 
+        if(full == 1) {  //若棋盘已满
+            QMessageBox::information(this, "Win", "平局！", QMessageBox::Ok);
+        }
+
+    }
 
     update();  //更新
 
