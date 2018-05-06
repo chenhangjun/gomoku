@@ -82,6 +82,17 @@ void PlayWithSelf::paintEvent(QPaintEvent *)  //绘制棋盘
 
     QBrush brush;      //创建画刷
     brush.setStyle(Qt::SolidPattern); //填充风格
+
+    //画天元和小星
+    brush.setColor(Qt::black);  // 设置画刷颜色为黑
+    p.setBrush(brush);  //使用画刷
+    //QPoint(x, y)确定圆心，(4, 4)为椭圆横轴和纵轴(圆半径)
+    p.drawEllipse(QPoint(8 * 40, 8 * 40), 4, 4);
+    p.drawEllipse(QPoint(4 * 40, 4 * 40), 4, 4);
+    p.drawEllipse(QPoint(4 * 40, 12 * 40), 4, 4);
+    p.drawEllipse(QPoint(12 * 40, 4 * 40), 4, 4);
+    p.drawEllipse(QPoint(12 * 40, 12 * 40), 4, 4);
+
     for(int i = 0; i < 15; i++) {
         for(int j = 0; j < 15; j++) {
             if(chessboard[i][j] == 1) {  //该点上是黑子
