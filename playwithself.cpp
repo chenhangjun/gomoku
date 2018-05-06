@@ -93,6 +93,32 @@ void PlayWithSelf::paintEvent(QPaintEvent *)  //绘制棋盘
     p.drawEllipse(QPoint(12 * 40, 4 * 40), 4, 4);
     p.drawEllipse(QPoint(12 * 40, 12 * 40), 4, 4);
 
+    if(flag == 0) {  //未掷过骰子
+        return;
+    }
+
+    //最后落子定位
+    p.setPen(QPen(Qt::red));
+    p.drawLine(wx - 18, wy - 18, wx - 18, wy - 8);
+    p.drawLine(wx - 18, wy - 18, wx - 8, wy - 18);
+    p.drawLine(wx - 18, wy + 18, wx - 18, wy + 8);
+    p.drawLine(wx - 18, wy + 18, wx - 8, wy + 18);
+    p.drawLine(wx + 18, wy - 18, wx + 8, wy - 18);
+    p.drawLine(wx + 18, wy - 18, wx + 18, wy - 8);
+    p.drawLine(wx + 18, wy + 18, wx + 18, wy + 8);
+    p.drawLine(wx + 18, wy + 18, wx + 8, wy + 18);
+
+    p.drawLine(bx - 18, by - 18, bx - 18, by - 8);
+    p.drawLine(bx - 18, by - 18, bx - 8, by - 18);
+    p.drawLine(bx - 18, by + 18, bx - 18, by + 8);
+    p.drawLine(bx - 18, by + 18, bx - 8, by + 18);
+    p.drawLine(bx + 18, by - 18, bx + 8, by - 18);
+    p.drawLine(bx + 18, by - 18, bx + 18, by - 8);
+    p.drawLine(bx + 18, by + 18, bx + 18, by + 8);
+    p.drawLine(bx + 18, by + 18, bx + 8, by + 18);
+
+    p.setPen(QPen(Qt::black));
+
     for(int i = 0; i < 15; i++) {
         for(int j = 0; j < 15; j++) {
             if(chessboard[i][j] == 1) {  //该点上是黑子
@@ -122,21 +148,26 @@ void PlayWithSelf::mouseReleaseEvent(QMouseEvent *e)
     int x, y; //鼠标对应的二维坐标
     if(e->x() >= 25 && e->x() <= 615 && e->y() >= 25 && e->y() <= 615) {
 
-        //倒计时
-        delete timer;
-        timer = new QTimer();
-        Timer();
-
-        //显示当前行棋方
-        if(player == -1) {
-            info2->setText("当前行棋方:       黑");
-        } else {
-            info2->setText("当前行棋方:       白");
-        }
-
         x = (e->x() - 25) / 40;  //棋点横坐标
         y = (e->y() - 25) / 40;  //棋点纵坐标
         if(!chessboard[x][y]) {
+
+            //倒计时
+            delete timer;
+            timer = new QTimer();
+            Timer();
+
+            //显示当前行棋方
+            if(player == -1) {
+                info2->setText("当前行棋方:       黑");
+                wx = (x + 1) * 40;
+                wy = (y + 1) * 40;
+            } else {
+                info2->setText("当前行棋方:       白");
+                bx = (x + 1) * 40;
+                by = (y + 1) * 40;
+            }
+
             chessboard[x][y] = player;
 
             if(JudgeWin(x, y)) {  //游戏结束

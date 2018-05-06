@@ -39,6 +39,8 @@ private:
     int flag;  //是否掷过骰子
     int countdown;  //倒计时30s
     int timecounter;  //计时间， 1000ms
+    int wx, wy, bx, by;  //黑白双方最后落子坐标
+
     QPushButton *button;  //掷骰子按钮
     QPushButton *button1; //掷骰子结束后OK按钮
     QLabel *label;   //显示骰子的标签
