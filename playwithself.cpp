@@ -2,6 +2,7 @@
 #include "ui_playwithself.h"
 #include <QMessageBox>
 #include <QSound>
+#include <cmath>
 
 PlayWithSelf::PlayWithSelf(QWidget *parent) :
     QMainWindow(parent),
@@ -60,6 +61,7 @@ PlayWithSelf::~PlayWithSelf()
 void PlayWithSelf::paintEvent(QPaintEvent *)  //绘制棋盘
 {
     QPainter p(this);
+    p.drawPixmap(0, 0, 970, 640, QPixmap(":/background.jpg"));
     p.setRenderHint(QPainter::Antialiasing, true); //消除锯齿
 
     for(int i = 1; i < 16; i++) {
@@ -87,11 +89,11 @@ void PlayWithSelf::paintEvent(QPaintEvent *)  //绘制棋盘
     brush.setColor(Qt::black);  // 设置画刷颜色为黑
     p.setBrush(brush);  //使用画刷
     //QPoint(x, y)确定圆心，(4, 4)为椭圆横轴和纵轴(圆半径)
-    p.drawEllipse(QPoint(8 * 40, 8 * 40), 4, 4);
-    p.drawEllipse(QPoint(4 * 40, 4 * 40), 4, 4);
-    p.drawEllipse(QPoint(4 * 40, 12 * 40), 4, 4);
-    p.drawEllipse(QPoint(12 * 40, 4 * 40), 4, 4);
-    p.drawEllipse(QPoint(12 * 40, 12 * 40), 4, 4);
+    p.drawEllipse(QPoint(8 * 40, 8 * 40), 4, 4);    //天元
+    p.drawEllipse(QPoint(4 * 40, 4 * 40), 4, 4);    //左上星
+    p.drawEllipse(QPoint(4 * 40, 12 * 40), 4, 4);   //左下星
+    p.drawEllipse(QPoint(12 * 40, 4 * 40), 4, 4);   //右上星
+    p.drawEllipse(QPoint(12 * 40, 12 * 40), 4, 4);  // 右下星
 
     if(flag == 0) {  //未掷过骰子
         return;
@@ -133,6 +135,15 @@ void PlayWithSelf::paintEvent(QPaintEvent *)  //绘制棋盘
             }
         }
     }
+
+    //五子连线画线
+    if((abs(firx - lasx) >= 160) || (abs(firy - lasy) >= 160)) {
+        pen.setWidth(3);
+        pen.setColor(Qt::red);
+        p.setPen(pen);
+        p.drawLine(firx, firy, lasx, lasy);
+    }
+
 }
 
 //落子
@@ -172,6 +183,7 @@ void PlayWithSelf::mouseReleaseEvent(QMouseEvent *e)
 
             if(JudgeWin(x, y)) {  //游戏结束
                 update();
+                timer->stop();
                 setEnabled(false);
                 QString ss;  //胜方信息
                 if(player == 1) {
@@ -215,11 +227,18 @@ void PlayWithSelf::mouseMoveEvent(QMouseEvent *event)
 bool PlayWithSelf::JudgeWin(int x, int y)
 {
     int cnt = 1;
+    firx = x;
+    firy = y;
+    lasx = x;
+    lasy = y;
 
     //判断横向
     for(int i = 1; i < 5; i++) {
         if(chessboard[x][y - i] == chessboard[x][y]) {
             cnt++;
+            firx = x;
+            firy = y - i;
+
         } else {
             break;
         }
@@ -227,9 +246,17 @@ bool PlayWithSelf::JudgeWin(int x, int y)
     for(int i = 1; i < 5; i++) {
         if(chessboard[x][y + i] == chessboard[x][y]) {
             cnt++;
+            lasx = x;
+            lasy = y + i;
+        } else {
+            break;
         }
     }
     if(cnt >= 5) {
+        firx = (firx + 1) * 40;
+        firy = (firy + 1) * 40;
+        lasx = (lasx + 1) * 40;
+        lasy = (lasy + 1) * 40;
         return true;
     } else {
         cnt = 1;
@@ -239,6 +266,8 @@ bool PlayWithSelf::JudgeWin(int x, int y)
     for(int i = 1; i < 5; i++) {
         if(chessboard[x - i][y] == chessboard[x][y]) {
             cnt++;
+            firx = x - i;
+            firy = y;
         } else {
             break;
         }
@@ -246,9 +275,17 @@ bool PlayWithSelf::JudgeWin(int x, int y)
     for(int i = 1; i < 5; i++) {
         if(chessboard[x + i][y] == chessboard[x][y]) {
             cnt++;
+            lasx = x + i;
+            lasy = y;
+        } else {
+            break;
         }
     }
     if(cnt >= 5) {
+        firx = (firx + 1) * 40;
+        firy = (firy + 1) * 40;
+        lasx = (lasx + 1) * 40;
+        lasy = (lasy + 1) * 40;
         return true;
     } else {
         cnt = 1;
@@ -259,6 +296,8 @@ bool PlayWithSelf::JudgeWin(int x, int y)
     for(int i = 1; i < 5; i++) {
         if(chessboard[x + i][y - i] == chessboard[x][y]) {
             cnt++;
+            firx = x + i;
+            firy = y - i;
         } else {
             break;
         }
@@ -266,9 +305,17 @@ bool PlayWithSelf::JudgeWin(int x, int y)
     for(int i = 1; i < 5; i++) {
         if(chessboard[x - i][y + i] == chessboard[x][y]) {
             cnt++;
+            lasx = x - i;
+            lasy = y + i;
+        } else {
+            break;
         }
     }
     if(cnt >= 5) {
+        firx = (firx + 1) * 40;
+        firy = (firy + 1) * 40;
+        lasx = (lasx + 1) * 40;
+        lasy = (lasy + 1) * 40;
         return true;
     } else {
         cnt = 1;
@@ -279,6 +326,8 @@ bool PlayWithSelf::JudgeWin(int x, int y)
     for(int i = 1; i < 5; i++) {
         if(chessboard[x - i][y - i] == chessboard[x][y]) {
             cnt++;
+            firx = x - i;
+            firy = y - i;
         } else {
             break;
         }
@@ -286,9 +335,17 @@ bool PlayWithSelf::JudgeWin(int x, int y)
     for(int i = 1; i < 5; i++) {
         if(chessboard[x + i][y + i] == chessboard[x][y]) {
             cnt++;
+            lasx = x + i;
+            lasy = y + i;
+        } else {
+            break;
         }
     }
     if(cnt >= 5) {
+        firx = (firx + 1) * 40;
+        firy = (firy + 1) * 40;
+        lasx = (lasx + 1) * 40;
+        lasy = (lasy + 1) * 40;
         return true;
     } else {
         cnt = 1;
@@ -451,7 +508,7 @@ void PlayWithSelf::CountDown()
     if(countdown <= 5) {
 
         if(timecounter == 10) {
-            QSound::play("/home/chen/Downloads/countdown.wav");
+            QSound::play(":/countdown.wav");
         }
 
         //闪烁频率0.2s

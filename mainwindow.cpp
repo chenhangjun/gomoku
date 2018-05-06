@@ -32,16 +32,13 @@ MainWindow::MainWindow(QWidget *parent) :
     setFixedSize(970, 640);
     //resize(640, 640);
 
-
-
 }
 
 void MainWindow::paintEvent(QPaintEvent *) {
 
     QPainter p(this);
+    p.drawPixmap(0, 0, 970, 640, QPixmap(":/background.jpg"));
     p.drawLine(635, 100, 635, 540);
-
-
 
 }
 

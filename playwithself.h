@@ -40,6 +40,7 @@ private:
     int countdown;  //倒计时30s
     int timecounter;  //计时间， 1000ms
     int wx, wy, bx, by;  //黑白双方最后落子坐标
+    int firx, firy, lasx, lasy;  //五子连珠始末坐标
 
     QPushButton *button;  //掷骰子按钮
     QPushButton *button1; //掷骰子结束后OK按钮
