@@ -68,7 +68,7 @@ void MainWindow::Button1Clicked() {
     play = new PlayWithSelf();
     play->show();
     //this->~MainWindow();
-    this->setVisible(false);     //隐藏上一窗口
+    this->close();    //隐藏上一窗口
 }
 
 MainWindow::~MainWindow()

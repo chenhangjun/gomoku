@@ -30,6 +30,7 @@ public Q_SLOTS:
     void ShowRandom();  //掷骰子事件
     void StartPlay(); //销毁控件
     void CountDown();  //倒计时
+    void Undo();  //悔棋
 
 private:
     Ui::PlayWithSelf *ui;
@@ -40,8 +41,10 @@ private:
     int full;  //判断是否棋盘填满而平局
     int countdown;  //倒计时30s
     int timecounter;  //计时间， 1000ms
+    int x, y; //鼠标对应位置的二维坐标
     int wx, wy, bx, by;  //黑白双方最后落子坐标
     int firx, firy, lasx, lasy;  //五子连珠始末坐标
+    int undowx,undowy, undobx, undoby;  //悔棋前备份
 
     QPushButton *button;  //掷骰子按钮
     QPushButton *button1; //掷骰子结束后OK按钮

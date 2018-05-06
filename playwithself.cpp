@@ -156,7 +156,7 @@ void PlayWithSelf::mouseReleaseEvent(QMouseEvent *e)
     this->setMouseTracking(true);
     mouseMoveEvent(e);
 
-    int x, y; //鼠标对应的二维坐标
+
     if(e->x() >= 25 && e->x() <= 615 && e->y() >= 25 && e->y() <= 615) {
 
         x = (e->x() - 25) / 40;  //棋点横坐标
@@ -174,10 +174,14 @@ void PlayWithSelf::mouseReleaseEvent(QMouseEvent *e)
                 info2->setText("当前行棋方:       黑");
                 wx = (x + 1) * 40;
                 wy = (y + 1) * 40;
+                undobx = bx; //备份
+                undoby = by;
             } else {
                 info2->setText("当前行棋方:       白");
                 bx = (x + 1) * 40;
                 by = (y + 1) * 40;
+                undowx = wx;  //备份
+                undowy = wy;
             }
 
             chessboard[x][y] = player;
@@ -220,6 +224,9 @@ void PlayWithSelf::mouseReleaseEvent(QMouseEvent *e)
         }
 
         if(full == 1) {  //若棋盘已满
+            update();
+            timer->stop();
+            setEnabled(false);
             QMessageBox::information(this, "Win", "平局！", QMessageBox::Ok);
         }
 
@@ -397,6 +404,14 @@ void PlayWithSelf::ShowStatus()
 
     lcdNumber->setVisible(true);
 
+    //悔棋按钮
+    QPushButton *undo = new QPushButton(this);
+    undo->setText("悔棋");
+    undo->setGeometry(750, 300, 100, 50);
+    undo->show();
+    //时间触发
+    connect(undo, SIGNAL(clicked(bool)), this, SLOT(Undo()));
+
     Timer();
 
 }
@@ -570,4 +585,23 @@ void PlayWithSelf::CountDown()
     timecounter = 0;
 
  }
+
+void PlayWithSelf::Undo()
+{
+    chessboard[x][y] = 0;
+    if(player == 1) {
+        player = -1;
+        info2->setText("当前行棋方:       白");
+    } else {
+        player= 1;
+        info2->setText("当前行棋方:       黑");
+    }
+    countdown = 30;
+    wx = undowx;
+    wy = undowy;
+    bx = undobx;
+    by = undoby;
+    update();
+
+}
 
