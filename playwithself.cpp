@@ -19,7 +19,7 @@ PlayWithSelf::PlayWithSelf(QWidget *parent) :
 
 
 
-    setFixedSize(1000, 670);
+    setFixedSize(970, 640);
     memset(chessboard, 0, sizeof(chessboard));
     PlayRandom();
 
@@ -35,13 +35,13 @@ void PlayWithSelf::PlayRandom()
 
     button = new QPushButton(this);
     button->setText("Play");
-    button->setGeometry(770, 270, 100, 40);
+    button->setGeometry(740, 270, 100, 40);
     button->show();
 
     //掷骰子前预显示图片
     label = new QLabel(this);
     label->setText("null");
-    label->setGeometry(720, 50, 200, 200);
+    label->setGeometry(690, 50, 200, 200);
     label->setPixmap(QPixmap(":/6.png"));
     label->show();
     label->setAlignment(Qt::AlignCenter);  //居中显示
@@ -61,24 +61,38 @@ void PlayWithSelf::paintEvent(QPaintEvent *)  //绘制棋盘
 {
     QPainter p(this);
     p.setRenderHint(QPainter::Antialiasing, true); //消除锯齿
-    for(int i = 0; i < 16; i++) {
-        p.drawLine(35, 35 + i * 40, 635, 35 + i * 40); //画横线,始末点确定线段
-        p.drawLine(35 + i * 40, 35, 35 + i * 40, 635); //画纵线，始末点确定线段
+
+    for(int i = 1; i < 16; i++) {
+        p.drawLine(40, i * 40, 600, i * 40); //画横线,始末点确定线段
+        p.drawLine(i * 40, 40, i * 40, 600); //画纵线，始末点确定线段
     }
+
+    //画外框，线条加粗
+    QPen pen;
+    pen.setWidth(3);
+    p.setPen(pen);
+    p.drawLine(30, 30, 30, 610);
+    p.drawLine(30, 30, 610, 30);
+    p.drawLine(610, 30, 610, 610);
+    p.drawLine(30, 610, 610, 610);
+
+    //线条粗细复原
+    pen.setWidth(1);
+    p.setPen(pen);
 
     QBrush brush;      //创建画刷
     brush.setStyle(Qt::SolidPattern); //填充风格
-    for(int i = 0; i < 16; i++) {
-        for(int j = 0; j < 16; j++) {
+    for(int i = 0; i < 15; i++) {
+        for(int j = 0; j < 15; j++) {
             if(chessboard[i][j] == 1) {  //该点上是黑子
                 brush.setColor(Qt::black);  // 设置画刷颜色为黑
                 p.setBrush(brush);  //使用画刷
                 //QPoint(x, y)确定圆心，(15, 15)为椭圆横轴和纵轴(圆半径)
-                p.drawEllipse(QPoint(i * 40 + 35, j * 40 + 35), 15, 15);
+                p.drawEllipse(QPoint((i + 1) * 40, (j + 1) * 40), 15, 15);
             } else if(chessboard[i][j] == -1) {  //该点上是白子
                 brush.setColor(Qt::white);  //设置画刷颜色为白
                 p.setBrush(brush);  //使用画刷
-                p.drawEllipse(QPoint(i * 40 + 35, j * 40 + 35), 15, 15);
+                p.drawEllipse(QPoint((i + 1) * 40, (j + 1) * 40), 15, 15);
             }
         }
     }
@@ -95,7 +109,7 @@ void PlayWithSelf::mouseReleaseEvent(QMouseEvent *e)
     mouseMoveEvent(e);
 
     int x, y; //鼠标对应的二维坐标
-    if(e->x() >= 20 && e->x() <= 650 && e->y() >= 20 && e->y() <= 650) {
+    if(e->x() >= 25 && e->x() <= 615 && e->y() >= 25 && e->y() <= 615) {
 
         //倒计时
         delete timer;
@@ -109,8 +123,8 @@ void PlayWithSelf::mouseReleaseEvent(QMouseEvent *e)
             info2->setText("当前行棋方:       白");
         }
 
-        x = (e->x() - 20) / 40;  //棋点横坐标
-        y = (e->y() - 20) / 40;  //棋点纵坐标
+        x = (e->x() - 25) / 40;  //棋点横坐标
+        y = (e->y() - 25) / 40;  //棋点纵坐标
         if(!chessboard[x][y]) {
             chessboard[x][y] = player;
 
@@ -146,9 +160,9 @@ void PlayWithSelf::mouseReleaseEvent(QMouseEvent *e)
 //判断该点是否已有棋子，从而改变鼠标状态
 void PlayWithSelf::mouseMoveEvent(QMouseEvent *event)
 {
-    if(event->x() >=20 && event->x() <= 650 &&
-            event->y() >= 20 && event->y() <= 650 &&
-            chessboard[(event->x() - 20) / 40][(event->y() - 20) / 40]) {
+    if(event->x() >=25 && event->x() <= 615 &&
+            event->y() >= 25 && event->y() <= 615 &&
+            chessboard[(event->x() - 25) / 40][(event->y() - 25) / 40]) {
         this->setCursor(Qt::ForbiddenCursor);
     } else {
         this->setCursor(Qt::ArrowCursor);
@@ -282,23 +296,22 @@ void PlayWithSelf::Timer()
 
     timer->start();
     connect(timer, SIGNAL(timeout()), this, SLOT(CountDown()));
-    timer->setInterval(10);
+    timer->setInterval(10);  //每10ms发射一个timeout信号
 
-     //延时
 }
 
 //掷骰子
 void PlayWithSelf::ShowRandom() {
 
     label1 = new QLabel(this);
-    label1->setGeometry(730, 350, 70, 30);
+    label1->setGeometry(700, 350, 70, 30);
 
     info1 = new QLabel(this);  //显示先手方
 
     //调用资源图片
     QMovie *movie;
     srand((unsigned)time(NULL));
-    int num = rand() % 6 + 1;
+    int num = rand() % 6 + 1;    // 1~6随机数
     if(num == 1) {
         movie = new QMovie(":/1.gif");
         label1->setText("白方先手");
@@ -350,7 +363,7 @@ void PlayWithSelf::ShowRandom() {
 
     button1 = new QPushButton(this);
     button1->setText("OK");
-    button1->setGeometry(840, 350, 70, 30);
+    button1->setGeometry(810, 350, 70, 30);
     button1->show();
 
     //button1 点击销毁一些控件
