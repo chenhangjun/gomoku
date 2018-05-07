@@ -18,13 +18,16 @@ public:
     ~MainWindow();
     void paintEvent(QPaintEvent *);
     void ShowLabel();
+    PlayWithSelf *play = new PlayWithSelf();  //按钮跳转对象
 
-public Q_SLOTS:
+private Q_SLOTS:
     void Button1Clicked(); //按钮点击事件
+    void Back();
+
 
 private:
     Ui::MainWindow *ui;
-    PlayWithSelf *play;   //按钮跳转对象
+
 };
 
 #endif // MAINWINDOW_H

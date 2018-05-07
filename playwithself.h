@@ -26,12 +26,16 @@ public:
     void ShowStatus();  //显示游戏时信息
     void Timer();  //倒计时
 
-public Q_SLOTS:
+
+
+private Q_SLOTS:
     void ShowRandom();  //掷骰子事件
     void StartPlay(); //销毁控件
     void CountDown();  //倒计时
     void Undo();  //悔棋
     void Exit();  // 点击OK返回
+    void Again();  //再玩一局
+    void onBackClicked();  //与点击信号发射有关槽函数
 
 private:
     Ui::PlayWithSelf *ui;
@@ -49,13 +53,21 @@ private:
 
     QPushButton *button;  //掷骰子按钮
     QPushButton *button1; //掷骰子结束后OK按钮
+    QPushButton *undo;    //悔棋按钮
+    QPushButton *clear;   //再来一局按钮
+    QPushButton *back;    //返回主界面按钮
     QLabel *label;   //显示骰子的标签
     QLabel *label1;  //显示谁先手的标签
     QLabel *info1;  //显示先手方
-    QLabel *info2 = new QLabel(this);  //显示当前行棋方
+    QLabel *info2;  //显示当前行棋方
+    QLabel *info3;  //"行棋倒计时"label
     QLCDNumber *lcdNumber;  //显示倒计时
-    QTimer *timer = new QTimer();  //计时器
+    QTimer *timer;  //计时器
     QDialog *subWin;  // 对局结束子窗口
+
+signals:
+    void backClicked();  //点击信号
+
 };
 
 #endif // PLAYWITHSELF_H

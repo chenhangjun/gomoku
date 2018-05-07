@@ -9,19 +9,22 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
 
     QPushButton *button1 = ui->pushButton;
-    button1->setText("人人对战");
+    button1->setText("玩家对弈");
     button1->setGeometry(700, 180, 200, 50);   //(220,150)坐标，长200，宽50
+    button1->setFont(QFont(QString::fromLocal8Bit("微软雅黑"), 13));
     button1->setDisabled(true);
     //button1->setVisible(false);
 
     QPushButton *button2 = ui->pushButton_2;
-    button2->setText("人机对战");
+    button2->setText("人机对弈");
     button2->setGeometry(700, 280, 200, 50);
+    button2->setFont(QFont(QString::fromLocal8Bit("微软雅黑"), 13));
     button2->setDisabled(true);
 
     QPushButton *button3 = ui->pushButton_3;
-    button3->setText("左右互搏");
+    button3->setText("单人自弈");
     button3->setGeometry(700, 380, 200, 50);
+    button3->setFont(QFont(QString::fromLocal8Bit("微软雅黑"), 13));
     button3->setDefault(false);
 
     //跳转界面
@@ -65,10 +68,14 @@ void MainWindow::ShowLabel() {  //设置规则介绍文本
 }
 
 void MainWindow::Button1Clicked() {
-    play = new PlayWithSelf();
+
     play->show();
-    //this->~MainWindow();
     this->close();    //隐藏上一窗口
+}
+
+void MainWindow::Back()
+{
+    this->show();
 }
 
 MainWindow::~MainWindow()

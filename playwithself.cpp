@@ -10,19 +10,10 @@ PlayWithSelf::PlayWithSelf(QWidget *parent) :
 {
     flag = 0;
     full = 1;
-    wx = -20;
-    wy = -20;
-    bx = -20;
-    by = -20;
-
-    //显示倒计时的标签
-    lcdNumber = new QLCDNumber(this);
-    lcdNumber->setGeometry(800, 200, 60, 30);
-    lcdNumber->setDigitCount(2);
-    lcdNumber->setSegmentStyle(QLCDNumber::Flat);
-   // lcdNumber->display("30");
-    lcdNumber->setVisible(false);
-
+    wx = -20;    wy = -20;
+    bx = -20;    by = -20;
+    firx = 0;    firy = 0;
+    lasx = 0;    lasy = 0;
 
     setFixedSize(970, 640);
     memset(chessboard, 0, sizeof(chessboard));
@@ -35,8 +26,6 @@ PlayWithSelf::PlayWithSelf(QWidget *parent) :
 void PlayWithSelf::PlayRandom()
 {
     //ui->setupUi(this);
-
-
 
     button = new QPushButton(this);
     button->setText("Play");
@@ -99,11 +88,11 @@ void PlayWithSelf::paintEvent(QPaintEvent *)  //绘制棋盘
     p.drawEllipse(QPoint(4 * 40, 12 * 40), 4, 4);   //左下星
     p.drawEllipse(QPoint(12 * 40, 4 * 40), 4, 4);   //右上星
     p.drawEllipse(QPoint(12 * 40, 12 * 40), 4, 4);  // 右下星
-
+/*
     if(flag == 0) {  //未掷过骰子
         return;
     }
-
+*/
     //最后落子定位
     p.setPen(QPen(Qt::red));
     p.drawLine(wx - 18, wy - 18, wx - 18, wy - 8);
@@ -163,6 +152,8 @@ void PlayWithSelf::mouseReleaseEvent(QMouseEvent *e)
 
 
     if(e->x() >= 25 && e->x() <= 615 && e->y() >= 25 && e->y() <= 615) {
+
+        undo->setDisabled(false);  //悔棋按钮可点
 
         x = (e->x() - 25) / 40;  //棋点横坐标
         y = (e->y() - 25) / 40;  //棋点纵坐标
@@ -254,7 +245,30 @@ void PlayWithSelf::mouseReleaseEvent(QMouseEvent *e)
             update();
             timer->stop();
             setEnabled(false);
-            QMessageBox::information(this, "Win", "平局！", QMessageBox::Ok);
+
+            subWin = new QDialog();
+            QPushButton *btn = new QPushButton(subWin);
+            QLabel *infolabel = new QLabel(subWin);
+
+            infolabel->setText("平局");
+            infolabel->setFont(QFont(QString::fromLocal8Bit("微软雅黑"), 13));
+            infolabel->setGeometry(80, 25, 142, 40);
+            infolabel->show();
+
+            btn->setText("OK");
+            btn->setFont(QFont(QString::fromLocal8Bit("微软雅黑"), 13));
+            btn->setGeometry(110, 80, 80, 30);
+            btn->show();
+
+            subWin->setWindowFlags(Qt::WindowStaysOnTopHint);
+            subWin->setFixedSize(300, 150);
+            subWin->setWindowTitle("对局结束");
+
+            subWin->show();
+
+            connect(btn, SIGNAL(clicked(bool)), this, SLOT(Exit()));
+
+           // QMessageBox::information(this, "Win", "平局！", QMessageBox::Ok);
         }
 
     }
@@ -410,6 +424,15 @@ bool PlayWithSelf::JudgeWin(int x, int y)
 //显示游戏时信息
 void PlayWithSelf::ShowStatus()
 {
+    //显示倒计时的标签
+    lcdNumber = new QLCDNumber(this);
+    lcdNumber->setGeometry(800, 220, 60, 30);
+    lcdNumber->setDigitCount(2);
+    lcdNumber->setSegmentStyle(QLCDNumber::Flat);
+    lcdNumber->show();
+   // lcdNumber->display("30");
+
+    info2 = new QLabel(this);
 
     if(player == 1) {
         info2->setText("当前行棋方:       黑");
@@ -422,24 +445,25 @@ void PlayWithSelf::ShowStatus()
     info2->setFont(QFont(QString::fromLocal8Bit("微软雅黑"), 13));
 
     //“行棋倒计时”label
-    QLabel *info3 = new QLabel(this);
+    info3 = new QLabel(this);
     info3->setText("行棋倒计时: ");
-    info3->setGeometry(700, 200, 100, 30);
+    info3->setGeometry(700, 220, 100, 30);
     info3->setAlignment(Qt::AlignLeft);
     info3->show();
     info3->setFont(QFont(QString::fromLocal8Bit("微软雅黑"), 13));
 
-    lcdNumber->setVisible(true);
-
     //悔棋按钮
-    QPushButton *undo = new QPushButton(this);
+    undo = new QPushButton(this);
     undo->setText("悔棋");
-    undo->setGeometry(760, 300, 80, 30);
+    undo->setGeometry(750, 300, 80, 30);
     undo->setFont(QFont(QString::fromLocal8Bit("微软雅黑"), 13));
     undo->show();
+    undo->setDisabled(true);
+
     //时间触发
     connect(undo, SIGNAL(clicked(bool)), this, SLOT(Undo()));
 
+    timer = new QTimer();
     Timer();
 
 }
@@ -529,7 +553,7 @@ void PlayWithSelf::ShowRandom() {
 
     //button1 点击销毁一些控件
 
-    info1->setGeometry(700, 100, 150, 30);
+    info1->setGeometry(700, 80, 150, 30);
     info1->setAlignment(Qt::AlignLeft);
     info1->setFont(QFont(QString::fromLocal8Bit("微软雅黑"), 13));
 
@@ -634,15 +658,67 @@ void PlayWithSelf::Undo()
 
 }
 
+//点击OK退出子窗口
 void PlayWithSelf::Exit()
 {
     subWin->close();
-    QPushButton *clear = new QPushButton(this);
+    clear = new QPushButton(this);
     clear->setText("再来一局");
     clear->setFont(QFont(QString::fromLocal8Bit("微软雅黑"), 13));
-    clear->setGeometry(740, 500, 100, 50);
+    clear->setGeometry(695, 400, 100, 30);
     clear->show();
-    clear->setDisabled(false);
+
+    undo->setEnabled(false);
+    flag = 0;
+    setEnabled(true);
+
+    connect(clear, SIGNAL(clicked(bool)), this, SLOT(Again()));
+
+    back = new QPushButton(this);
+    back->setText("返回");
+    back->setFont(QFont(QString::fromLocal8Bit("微软雅黑"), 13));
+    back->setGeometry(835, 400, 60, 30);
+    back->show();
+    connect(back, SIGNAL(clicked(bool)), this, SLOT(onBackClicked()));
+
+}
+
+//再玩一局
+void PlayWithSelf::Again()
+{
+    /*
+    PlayWithSelf *again = new PlayWithSelf();
+    again->show();
+    this->close();
+*/
+    flag = 0;
+    full = 1;
+    wx = -20;    wy = -20;
+    bx = -20;    by = -20;
+    firx = 0;    firy = 0;
+    lasx = 0;    lasy = 0;
+
+    memset(chessboard, 0, sizeof(chessboard));
+
+    delete timer;
+    delete info1;
+    delete info2;
+    delete info3;
+    delete lcdNumber;
+    delete undo;
+    delete clear;
+    delete back;
+
+    PlayRandom();
+
+    update();
+
+}
+
+void PlayWithSelf::onBackClicked()
+{
+    this->close();
+    emit backClicked();   //发出点击信号
 
 }
 
