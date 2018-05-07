@@ -31,6 +31,7 @@ public Q_SLOTS:
     void StartPlay(); //销毁控件
     void CountDown();  //倒计时
     void Undo();  //悔棋
+    void Exit();  // 点击OK返回
 
 private:
     Ui::PlayWithSelf *ui;
@@ -53,7 +54,8 @@ private:
     QLabel *info1;  //显示先手方
     QLabel *info2 = new QLabel(this);  //显示当前行棋方
     QLCDNumber *lcdNumber;  //显示倒计时
-    QTimer *timer = new QTimer();
+    QTimer *timer = new QTimer();  //计时器
+    QDialog *subWin;  // 对局结束子窗口
 };
 
 #endif // PLAYWITHSELF_H

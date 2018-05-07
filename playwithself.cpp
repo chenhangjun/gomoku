@@ -10,6 +10,10 @@ PlayWithSelf::PlayWithSelf(QWidget *parent) :
 {
     flag = 0;
     full = 1;
+    wx = -20;
+    wy = -20;
+    bx = -20;
+    by = -20;
 
     //显示倒计时的标签
     lcdNumber = new QLCDNumber(this);
@@ -37,6 +41,7 @@ void PlayWithSelf::PlayRandom()
     button = new QPushButton(this);
     button->setText("Play");
     button->setGeometry(740, 270, 100, 40);
+    button->setFont(QFont(QString::fromLocal8Bit("微软雅黑"), 13));
     button->show();
 
     //掷骰子前预显示图片
@@ -192,13 +197,35 @@ void PlayWithSelf::mouseReleaseEvent(QMouseEvent *e)
                 setEnabled(false);
                 QString ss;  //胜方信息
                 if(player == 1) {
-                    ss = "黑方胜！";
+                    ss = "游戏结束，黑方胜！";
                 } else {
-                    ss= "白方胜！";
+                    ss= "游戏结束，白方胜！";
                 }
 
                 //胜方信息
-                QMessageBox::information(this, "Win", ss, QMessageBox::Ok);
+                subWin = new QDialog();
+                QPushButton *btn = new QPushButton(subWin);
+                QLabel *infolabel = new QLabel(subWin);
+
+                infolabel->setText(ss);
+                infolabel->setFont(QFont(QString::fromLocal8Bit("微软雅黑"), 13));
+                infolabel->setGeometry(80, 25, 142, 40);
+                infolabel->show();
+
+                btn->setText("OK");
+                btn->setFont(QFont(QString::fromLocal8Bit("微软雅黑"), 13));
+                btn->setGeometry(110, 80, 80, 30);
+                btn->show();
+
+                subWin->setWindowFlags(Qt::WindowStaysOnTopHint);
+                subWin->setFixedSize(300, 150);
+                subWin->setWindowTitle("对局结束");
+
+                subWin->show();
+
+                connect(btn, SIGNAL(clicked(bool)), this, SLOT(Exit()));
+
+                //QMessageBox::information(this, "Win", ss, QMessageBox::Ok);
             }
 
             if(player == 1) {    //本次着黑棋
@@ -407,7 +434,8 @@ void PlayWithSelf::ShowStatus()
     //悔棋按钮
     QPushButton *undo = new QPushButton(this);
     undo->setText("悔棋");
-    undo->setGeometry(750, 300, 100, 50);
+    undo->setGeometry(760, 300, 80, 30);
+    undo->setFont(QFont(QString::fromLocal8Bit("微软雅黑"), 13));
     undo->show();
     //时间触发
     connect(undo, SIGNAL(clicked(bool)), this, SLOT(Undo()));
@@ -496,6 +524,7 @@ void PlayWithSelf::ShowRandom() {
     button1 = new QPushButton(this);
     button1->setText("OK");
     button1->setGeometry(810, 350, 70, 30);
+    button1->setFont(QFont(QString::fromLocal8Bit("微软雅黑"), 10));
     button1->show();
 
     //button1 点击销毁一些控件
@@ -602,6 +631,18 @@ void PlayWithSelf::Undo()
     bx = undobx;
     by = undoby;
     update();
+
+}
+
+void PlayWithSelf::Exit()
+{
+    subWin->close();
+    QPushButton *clear = new QPushButton(this);
+    clear->setText("再来一局");
+    clear->setFont(QFont(QString::fromLocal8Bit("微软雅黑"), 13));
+    clear->setGeometry(740, 500, 100, 50);
+    clear->show();
+    clear->setDisabled(false);
 
 }
 
