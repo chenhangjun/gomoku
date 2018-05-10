@@ -6,6 +6,7 @@
 #include <QLabel>
 #include <QtGui>
 #include <QLCDNumber>
+#include <QDialog>
 
 namespace Ui {
 class PlayWithSelf;
@@ -39,8 +40,12 @@ private Q_SLOTS:
 
 private:
     Ui::PlayWithSelf *ui;
-    int chessboard[16][16];   //横纵16个着棋点
+
     bool JudgeWin(int, int);  //是否赢了
+    bool isLegal(int, int);   //判断坐标是否合法
+
+
+    int chessboard[15][15];   //横纵16个着棋点
     int player;    // -1代表白方，1代表黑方；
     int flag;  //是否掷过骰子
     int full;  //判断是否棋盘填满而平局
@@ -64,9 +69,6 @@ private:
     QLCDNumber *lcdNumber;  //显示倒计时
     QTimer *timer;  //计时器
     QDialog *subWin;  // 对局结束子窗口
-
-signals:
-    void backClicked();  //点击信号
 
 };
 

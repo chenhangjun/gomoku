@@ -41,7 +41,7 @@ void MainWindow::paintEvent(QPaintEvent *) {
 
     QPainter p(this);
     p.drawPixmap(0, 0, 970, 640, QPixmap(":/background.jpg"));
-    p.drawLine(635, 100, 635, 540);
+    p.drawLine(635, 90, 635, 550);
 
 }
 
@@ -78,11 +78,6 @@ void MainWindow::Button1Clicked() {
 
     play->show();
     this->close();    //隐藏上一窗口
-}
-
-void MainWindow::Back()
-{
-    this->show();
 }
 
 MainWindow::~MainWindow()

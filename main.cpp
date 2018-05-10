@@ -8,7 +8,7 @@ int main(int argc, char *argv[])
     //PlayWithSelf p;
     w.show();
 
-    QObject::connect(w.play, SIGNAL(backClicked()), &w, SLOT(Back()));
+    //QObject::connect(w.play, SIGNAL(backClicked()), &w, SLOT(Back()));
 
     return a.exec();
 }

@@ -1,8 +1,8 @@
 #include "playwithself.h"
 #include "ui_playwithself.h"
-#include <QMessageBox>
 #include <QSound>
 #include <cmath>
+#include "mainwindow.h"    //加在PlayWithSelf.h里会出错？ 只能在这里？
 
 PlayWithSelf::PlayWithSelf(QWidget *parent) :
     QMainWindow(parent),
@@ -150,13 +150,12 @@ void PlayWithSelf::mouseReleaseEvent(QMouseEvent *e)
     this->setMouseTracking(true);
     mouseMoveEvent(e);
 
+    x = (e->x() - 25) / 40;  //棋点横坐标
+    y = (e->y() - 25) / 40;  //棋点纵坐标
 
-    if(e->x() >= 25 && e->x() <= 615 && e->y() >= 25 && e->y() <= 615) {
+    if(isLegal(x, y)) {
 
-        undo->setDisabled(false);  //悔棋按钮可点
-
-        x = (e->x() - 25) / 40;  //棋点横坐标
-        y = (e->y() - 25) / 40;  //棋点纵坐标
+        undo->setDisabled(false);  //悔棋按钮可点       
 
         if(!chessboard[x][y]) {
 
@@ -185,7 +184,7 @@ void PlayWithSelf::mouseReleaseEvent(QMouseEvent *e)
             if(JudgeWin(x, y)) {  //游戏结束
                 update();
                 timer->stop();
-                setEnabled(false);
+                //setEnabled(false);
                 QString ss;  //胜方信息
                 if(player == 1) {
                     ss = "游戏结束，黑方胜！";
@@ -200,21 +199,42 @@ void PlayWithSelf::mouseReleaseEvent(QMouseEvent *e)
 
                 infolabel->setText(ss);
                 infolabel->setFont(QFont(QString::fromLocal8Bit("微软雅黑"), 13));
-                infolabel->setGeometry(80, 25, 142, 40);
+                infolabel->setGeometry(55, 15, 142, 40);
                 infolabel->show();
 
                 btn->setText("OK");
                 btn->setFont(QFont(QString::fromLocal8Bit("微软雅黑"), 13));
-                btn->setGeometry(110, 80, 80, 30);
+                btn->setGeometry(85, 60, 80, 30);
                 btn->show();
 
                 subWin->setWindowFlags(Qt::WindowStaysOnTopHint);
-                subWin->setFixedSize(300, 150);
+                subWin->setFixedSize(250, 120);
                 subWin->setWindowTitle("对局结束");
 
                 subWin->show();
 
                 connect(btn, SIGNAL(clicked(bool)), this, SLOT(Exit()));
+
+                //一下两个按钮本该在Exit()槽函数里的，防止btn的误关操作，导致无法返回
+                clear = new QPushButton(this);
+                clear->setText("再来一局");
+                clear->setFont(QFont(QString::fromLocal8Bit("微软雅黑"), 13));
+                clear->setGeometry(695, 400, 100, 30);
+                clear->show();
+
+                undo->setEnabled(false);
+                flag = 0;
+                //setEnabled(true);
+
+                connect(clear, SIGNAL(clicked(bool)), this, SLOT(Again()));
+
+                back = new QPushButton(this);
+                back->setText("返回");
+                back->setFont(QFont(QString::fromLocal8Bit("微软雅黑"), 13));
+                back->setGeometry(835, 400, 60, 30);
+                back->show();
+                connect(back, SIGNAL(clicked(bool)), this, SLOT(onBackClicked()));
+
 
                 //QMessageBox::information(this, "Win", ss, QMessageBox::Ok);
             }
@@ -298,8 +318,11 @@ bool PlayWithSelf::JudgeWin(int x, int y)
     lasx = x;
     lasy = y;
 
-    //判断横向
+    //判断纵向
     for(int i = 1; i < 5; i++) {
+        if(!isLegal(x, y - i)) {
+            continue;
+        }
         if(chessboard[x][y - i] == chessboard[x][y]) {
             cnt++;
             firx = x;
@@ -310,6 +333,9 @@ bool PlayWithSelf::JudgeWin(int x, int y)
         }
     }
     for(int i = 1; i < 5; i++) {
+        if(!isLegal(x, y + i)) {
+            continue;
+        }
         if(chessboard[x][y + i] == chessboard[x][y]) {
             cnt++;
             lasx = x;
@@ -328,8 +354,11 @@ bool PlayWithSelf::JudgeWin(int x, int y)
         cnt = 1;
     }
 
-    //判断纵向
+    //判断横向
     for(int i = 1; i < 5; i++) {
+        if(!isLegal(x - i, y)) {
+            continue;
+        }
         if(chessboard[x - i][y] == chessboard[x][y]) {
             cnt++;
             firx = x - i;
@@ -339,6 +368,9 @@ bool PlayWithSelf::JudgeWin(int x, int y)
         }
     }
     for(int i = 1; i < 5; i++) {
+        if(!isLegal(x + i, y)) {
+            continue;
+        }
         if(chessboard[x + i][y] == chessboard[x][y]) {
             cnt++;
             lasx = x + i;
@@ -360,6 +392,9 @@ bool PlayWithSelf::JudgeWin(int x, int y)
 
     //判断右上——左下
     for(int i = 1; i < 5; i++) {
+        if(!isLegal(x + i, y - i)) {
+            continue;
+        }
         if(chessboard[x + i][y - i] == chessboard[x][y]) {
             cnt++;
             firx = x + i;
@@ -369,6 +404,9 @@ bool PlayWithSelf::JudgeWin(int x, int y)
         }
     }
     for(int i = 1; i < 5; i++) {
+        if(!isLegal(x - i, y + i)) {
+            continue;
+        }
         if(chessboard[x - i][y + i] == chessboard[x][y]) {
             cnt++;
             lasx = x - i;
@@ -390,6 +428,9 @@ bool PlayWithSelf::JudgeWin(int x, int y)
 
     //判断左上——右下
     for(int i = 1; i < 5; i++) {
+        if(!isLegal(x - i, y - i)) {
+            continue;
+        }
         if(chessboard[x - i][y - i] == chessboard[x][y]) {
             cnt++;
             firx = x - i;
@@ -399,6 +440,9 @@ bool PlayWithSelf::JudgeWin(int x, int y)
         }
     }
     for(int i = 1; i < 5; i++) {
+        if(!isLegal(x + i, y + i)) {
+            continue;
+        }
         if(chessboard[x + i][y + i] == chessboard[x][y]) {
             cnt++;
             lasx = x + i;
@@ -418,6 +462,13 @@ bool PlayWithSelf::JudgeWin(int x, int y)
     }
 
     //没有五子连珠
+    return false;
+}
+
+bool PlayWithSelf::isLegal(int a, int b) {
+    if(a >= 0 && a <= 14 && b >= 0 && b <= 14) {
+        return true;
+    }
     return false;
 }
 
@@ -662,25 +713,6 @@ void PlayWithSelf::Undo()
 void PlayWithSelf::Exit()
 {
     subWin->close();
-    clear = new QPushButton(this);
-    clear->setText("再来一局");
-    clear->setFont(QFont(QString::fromLocal8Bit("微软雅黑"), 13));
-    clear->setGeometry(695, 400, 100, 30);
-    clear->show();
-
-    undo->setEnabled(false);
-    flag = 0;
-    setEnabled(true);
-
-    connect(clear, SIGNAL(clicked(bool)), this, SLOT(Again()));
-
-    back = new QPushButton(this);
-    back->setText("返回");
-    back->setFont(QFont(QString::fromLocal8Bit("微软雅黑"), 13));
-    back->setGeometry(835, 400, 60, 30);
-    back->show();
-    connect(back, SIGNAL(clicked(bool)), this, SLOT(onBackClicked()));
-
 }
 
 //再玩一局
@@ -718,7 +750,7 @@ void PlayWithSelf::Again()
 void PlayWithSelf::onBackClicked()
 {
     this->close();
-    emit backClicked();   //发出点击信号
-
+    MainWindow *m = new MainWindow();
+    m->show();
 }
 

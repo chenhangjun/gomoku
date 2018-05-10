@@ -22,8 +22,6 @@ public:
 
 private Q_SLOTS:
     void Button1Clicked(); //按钮点击事件
-    void Back();
-
 
 private:
     Ui::MainWindow *ui;
