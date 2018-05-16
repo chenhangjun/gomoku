@@ -27,13 +27,22 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += main.cpp\
         mainwindow.cpp \
-    playwithself.cpp
+    playwithself.cpp \
+    aiselect.cpp \
+    playwithai.cpp \
+    aiupdate.cpp
 
 HEADERS  += mainwindow.h \
-    playwithself.h
+    playwithself.h \
+    aiselect.h \
+    playwithai.h \
+    aiupdate.h
 
 FORMS    += mainwindow.ui \
-    playwithself.ui
+    playwithself.ui \
+    aiselect.ui \
+    playwithai.ui \
+    aiupdate.ui
 
 RESOURCES += \
     pic.qrc

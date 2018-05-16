@@ -3,7 +3,6 @@
 
 #include <QMainWindow>
 #include <QtGui>
-#include "playwithself.h"
 
 namespace Ui {
 class MainWindow;
@@ -18,10 +17,10 @@ public:
     ~MainWindow();
     void paintEvent(QPaintEvent *);
     void ShowLabel();
-    PlayWithSelf *play = new PlayWithSelf();  //按钮跳转对象
 
 private Q_SLOTS:
-    void Button1Clicked(); //按钮点击事件
+    void Button1Clicked(); //按钮1点击事件
+    void Button2Clicked();  //按钮2点击事件
 
 private:
     Ui::MainWindow *ui;

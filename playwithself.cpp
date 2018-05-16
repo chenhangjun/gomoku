@@ -184,7 +184,7 @@ void PlayWithSelf::mouseReleaseEvent(QMouseEvent *e)
             if(JudgeWin(x, y)) {  //游戏结束
                 update();
                 timer->stop();
-                //setEnabled(false);
+                setEnabled(false);
                 QString ss;  //胜方信息
                 if(player == 1) {
                     ss = "游戏结束，黑方胜！";
@@ -214,27 +214,6 @@ void PlayWithSelf::mouseReleaseEvent(QMouseEvent *e)
                 subWin->show();
 
                 connect(btn, SIGNAL(clicked(bool)), this, SLOT(Exit()));
-
-                //一下两个按钮本该在Exit()槽函数里的，防止btn的误关操作，导致无法返回
-                clear = new QPushButton(this);
-                clear->setText("再来一局");
-                clear->setFont(QFont(QString::fromLocal8Bit("微软雅黑"), 13));
-                clear->setGeometry(695, 400, 100, 30);
-                clear->show();
-
-                undo->setEnabled(false);
-                flag = 0;
-                //setEnabled(true);
-
-                connect(clear, SIGNAL(clicked(bool)), this, SLOT(Again()));
-
-                back = new QPushButton(this);
-                back->setText("返回");
-                back->setFont(QFont(QString::fromLocal8Bit("微软雅黑"), 13));
-                back->setGeometry(835, 400, 60, 30);
-                back->show();
-                connect(back, SIGNAL(clicked(bool)), this, SLOT(onBackClicked()));
-
 
                 //QMessageBox::information(this, "Win", ss, QMessageBox::Ok);
             }
@@ -588,7 +567,7 @@ void PlayWithSelf::ShowRandom() {
     label1->setFont(QFont(QString::fromLocal8Bit("微软雅黑"), 13));
 
 
-    //延时1.5s显示label1内容
+    //延时1.35s显示label1内容
     QTime dieTime = QTime::currentTime().addMSecs(1350);
     while(QTime::currentTime() < dieTime)
     QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
@@ -713,6 +692,26 @@ void PlayWithSelf::Undo()
 void PlayWithSelf::Exit()
 {
     subWin->close();
+    setEnabled(true);
+    //一下两个按钮本该在Exit()槽函数里的，防止btn的误关操作，导致无法返回
+    clear = new QPushButton(this);
+    clear->setText("再来一局");
+    clear->setFont(QFont(QString::fromLocal8Bit("微软雅黑"), 13));
+    clear->setGeometry(695, 400, 100, 30);
+    clear->show();
+
+    undo->setEnabled(false);
+    flag = 0;
+
+
+    connect(clear, SIGNAL(clicked(bool)), this, SLOT(Again()));
+
+    back = new QPushButton(this);
+    back->setText("返回");
+    back->setFont(QFont(QString::fromLocal8Bit("微软雅黑"), 13));
+    back->setGeometry(835, 400, 60, 30);
+    back->show();
+    connect(back, SIGNAL(clicked(bool)), this, SLOT(onBackClicked()));
 }
 
 //再玩一局

@@ -1,5 +1,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "playwithself.h"
+#include "aiselect.h"
 #include <QLabel>
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -19,7 +21,7 @@ MainWindow::MainWindow(QWidget *parent) :
     button2->setText("人机对弈");
     button2->setGeometry(700, 280, 200, 50);
     button2->setFont(QFont(QString::fromLocal8Bit("微软雅黑"), 13));
-    button2->setDisabled(true);
+    button2->setDisabled(false);
 
     QPushButton *button3 = ui->pushButton_3;
     button3->setText("单人自弈");
@@ -29,6 +31,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     //跳转界面
     connect(button3, SIGNAL(clicked(bool)), this, SLOT(Button1Clicked()));
+    connect(button2, SIGNAL(clicked(bool)), this, SLOT(Button2Clicked()));
 
     ShowLabel();  //规则介绍文本
 
@@ -76,8 +79,16 @@ void MainWindow::ShowLabel() {  //设置规则介绍文本
 
 void MainWindow::Button1Clicked() {
 
+    PlayWithSelf *play = new PlayWithSelf();  //按钮跳转对象
     play->show();
-    this->close();    //隐藏上一窗口
+    this->close();    //关闭当前窗口
+}
+
+void MainWindow::Button2Clicked() {
+
+    AISelect *play = new AISelect();  //按钮跳转对象
+    play->show();
+    this->close();    //关闭当前窗口
 }
 
 MainWindow::~MainWindow()
