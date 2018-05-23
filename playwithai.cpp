@@ -1338,6 +1338,8 @@ void PlayWithAI::Again()
     bx = -20;    by = -20;
     firx = 0;    firy = 0;
     lasx = 0;    lasy = 0;
+    totalcnt = 0;
+    listcnt = 1;
 
     memset(chessboard, 0, sizeof(chessboard));
     memset(scoreboard, 0, sizeof(scoreboard));

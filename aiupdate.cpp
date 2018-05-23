@@ -19,6 +19,8 @@ AiUpdate::AiUpdate(QWidget *parent) :
     lasx = 0;    lasy = 0;
     totalcnt = 0;
     listcnt = 1;
+    totalcnt = 0;
+    listcnt = 1;
 
     list = new Point[250];
 
