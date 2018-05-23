@@ -1,6 +1,9 @@
 #include "aiupdate.h"
 #include "ui_aiupdate.h"
+#include <cmath>
 #include <QPainter>
+#include <QSound>
+#include "mainwindow.h"
 
 AiUpdate::AiUpdate(QWidget *parent) :
     QMainWindow(parent),
@@ -8,11 +11,25 @@ AiUpdate::AiUpdate(QWidget *parent) :
 {
     ui->setupUi(this);
     setFixedSize(970, 640);
+
+    full = 1;
+    wx = -20;    wy = -20;
+    bx = -20;    by = -20;
+    firx = 0;    firy = 0;
+    lasx = 0;    lasy = 0;
+    totalcnt = 0;
+    listcnt = 1;
+
+    list = new Point[250];
+
     memset(chessboard, 0, sizeof(chessboard));
     memset(scoreboard, 0, sizeof(scoreboard));
     player = 1;
+    full = 1;
     flag = 0;
     initValue();
+    colorchosen = 0;
+    orderchosen = 0;
 
     ChooseColor();
 
@@ -20,9 +37,8 @@ AiUpdate::AiUpdate(QWidget *parent) :
 
 AiUpdate::~AiUpdate()
 {
-    delete ui;
+    //delete ui;
 }
-
 
 //初始化valuelist
 void AiUpdate::initValue()
@@ -35,6 +51,7 @@ void AiUpdate::initValue()
     }
     valuelist[1][5] = 100000;
 
+    scoreboard[7][7][0] = 1;
     /*初始化结果如下  第0列无用
     valuelist = { { 0, 10, 100, 1000, 10000, 100000 },    //活子
                   { 0, 0,  10,  100,  1000,  100000} };   //死子
@@ -46,6 +63,7 @@ void AiUpdate::paintEvent(QPaintEvent *)  //绘制棋盘
 {
     QPainter p(this);
 
+    p.drawPixmap(0, 0, 970, 640, QPixmap(":/background.jpg"));
 
     p.setRenderHint(QPainter::Antialiasing, true); //消除锯齿
 
@@ -79,6 +97,45 @@ void AiUpdate::paintEvent(QPaintEvent *)  //绘制棋盘
     p.drawEllipse(QPoint(12 * 40, 4 * 40), 4, 4);   //右上星
     p.drawEllipse(QPoint(12 * 40, 12 * 40), 4, 4);  // 右下星
 
+    //最后落子定位
+    p.setPen(QPen(Qt::red));
+
+    int p1, p2;
+    if(!stk.isEmpty()) {
+        p1 = stk.peek();
+        wx = list[p1].getPX();
+        wy = list[p1].getPY();
+    } else {
+        wx = -20;    wy = -20;
+    }
+    if(stk.Size() > 1) {
+        p2 = stk.peek2();
+        bx = list[p2].getPX();
+        by = list[p2].getPY();
+    } else{
+        bx = -20;    by = -20;
+    }
+
+    p.drawLine(wx - 18, wy - 18, wx - 18, wy - 8);
+    p.drawLine(wx - 18, wy - 18, wx - 8, wy - 18);
+    p.drawLine(wx - 18, wy + 18, wx - 18, wy + 8);
+    p.drawLine(wx - 18, wy + 18, wx - 8, wy + 18);
+    p.drawLine(wx + 18, wy - 18, wx + 8, wy - 18);
+    p.drawLine(wx + 18, wy - 18, wx + 18, wy - 8);
+    p.drawLine(wx + 18, wy + 18, wx + 18, wy + 8);
+    p.drawLine(wx + 18, wy + 18, wx + 8, wy + 18);
+
+    p.drawLine(bx - 18, by - 18, bx - 18, by - 8);
+    p.drawLine(bx - 18, by - 18, bx - 8, by - 18);
+    p.drawLine(bx - 18, by + 18, bx - 18, by + 8);
+    p.drawLine(bx - 18, by + 18, bx - 8, by + 18);
+    p.drawLine(bx + 18, by - 18, bx + 8, by - 18);
+    p.drawLine(bx + 18, by - 18, bx + 18, by - 8);
+    p.drawLine(bx + 18, by + 18, bx + 18, by + 8);
+    p.drawLine(bx + 18, by + 18, bx + 8, by + 18);
+
+    p.setPen(QPen(Qt::black));
+
     for(int i = 0; i < 15; i++) {
         for(int j = 0; j < 15; j++) {
             if(chessboard[i][j] == 1) {  //该点上是黑子
@@ -94,29 +151,63 @@ void AiUpdate::paintEvent(QPaintEvent *)  //绘制棋盘
         }
     }
 
+    //五子连线画线
+    if((abs(firx - lasx) >= 160) || (abs(firy - lasy) >= 160)) {
+        pen.setWidth(3);
+        pen.setColor(Qt::red);
+        p.setPen(pen);
+        p.drawLine(firx, firy, lasx, lasy);
+    }
+
 }
 
 void AiUpdate::mouseReleaseEvent(QMouseEvent *e)
 {
-    if(flag == 0) {
+    if(flag == 0) {    //未选棋色或先后手
         return;
     }
 
+    ui->centralwidget->setMouseTracking(true);
     this->setMouseTracking(true);
     mouseMoveEvent(e);
 
+    x = (e->x() - 25) / 40;  //棋点横坐标
+    y = (e->y() - 25) / 40;  //棋点纵坐标
 
-    if(e->x() >= 25 && e->x() <= 615 && e->y() >= 25 && e->y() <= 615) {
 
-        x = (e->x() - 25) / 40;  //棋点横坐标
-        y = (e->y() - 25) / 40;  //棋点纵坐标
+    if(isLegal(x, y)) {
 
         if(!chessboard[x][y]) {
+
+            undo->setDisabled(false);
+
+            //倒计时
+            delete timer;
+            timer = new QTimer();
+            Timer();
+
+            px = (x + 1) * 40;
+            py = (y + 1) * 40;
+
+            if(totalcnt > 250 * listcnt) {
+                listcnt++;
+                Point *temp = new Point[listcnt * 250];
+                for(int i = 0; i < totalcnt; i++) {
+                    temp[i] = list[i];
+                }
+                delete list;
+                list = temp;
+            }
+            stk.push(totalcnt);   //入栈
+            list[totalcnt++].setP(x, y, px, py, 1);
+
+
             chessboard[x][y] = player;
             scoreboard[x][y][0] = -10;
             update();
 
             if(JudgeWin(x, y)) {
+                timer->stop();
                 setEnabled(false);
                 QString ss;
                 if(player == 1) {
@@ -149,19 +240,77 @@ void AiUpdate::mouseReleaseEvent(QMouseEvent *e)
                 return;
             }
 
+            //判断是否平局
+            full = 1;  //先设棋盘已满
+            for(int i = 0; i < 15; i++) {
+                for(int j = 0; j < 15; j++) {
+                    if(!chessboard[i][j]) {
+                        full = 0; //棋盘未满
+                        break;
+                    }
+                }
+                if(full == 0) {
+                    break;
+                }
+            }
+            if(full == 1) {  //若棋盘已满
+                update();
+                timer->stop();
+                setEnabled(false);
+
+                subWin = new QDialog();
+                QPushButton *btn = new QPushButton(subWin);
+                QLabel *infolabel = new QLabel(subWin);
+
+                infolabel->setText("平局");
+                infolabel->setFont(QFont(QString::fromLocal8Bit("微软雅黑"), 13));
+                infolabel->setGeometry(80, 25, 142, 40);
+                infolabel->show();
+
+                btn->setText("OK");
+                btn->setFont(QFont(QString::fromLocal8Bit("微软雅黑"), 13));
+                btn->setGeometry(110, 80, 80, 30);
+                btn->show();
+
+                subWin->setWindowFlags(Qt::WindowStaysOnTopHint);
+                subWin->setFixedSize(300, 150);
+                subWin->setWindowTitle("对局结束");
+
+                subWin->show();
+
+                connect(btn, SIGNAL(clicked(bool)), this, SLOT(Exit()));
+
+                return;
+
+               // QMessageBox::information(this, "Win", "平局！", QMessageBox::Ok);
+            }
+
             Score(x, y);
+
+            //玩家下棋后1s电脑下棋、延时
+            QTime dieTime = QTime::currentTime().addMSecs(1000);
+            while(QTime::currentTime() < dieTime)
+            QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
+
+            AIPlay();
         }
+
     }
 
+    update();
 
-    //玩家下棋后1s电脑下棋、延时
-    QTime dieTime = QTime::currentTime().addMSecs(1000);
-    while(QTime::currentTime() < dieTime)
-    QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
+}
 
-    AIPlay();
-
-
+//改变鼠标状态
+void AiUpdate::mouseMoveEvent(QMouseEvent *event)
+{
+    if(event->x() >=25 && event->x() <= 615 &&
+            event->y() >= 25 && event->y() <= 615 &&
+            chessboard[(event->x() - 25) / 40][(event->y() - 25) / 40]) {
+        this->setCursor(Qt::ForbiddenCursor);
+    } else {
+        this->setCursor(Qt::ArrowCursor);
+    }
 }
 
 
@@ -169,8 +318,8 @@ void AiUpdate::ChooseColor()
 {
      color = new QButtonGroup();
 
-     white = new QRadioButton("white", this);
-     black = new QRadioButton("black", this);
+     white = new QRadioButton("白棋", this);
+     black = new QRadioButton("黑棋", this);
      white->setGeometry(700, 20, 80, 20);
      black->setGeometry(820, 20, 80, 20);
      white->setFont(QFont(QString::fromLocal8Bit("微软雅黑"), 13));
@@ -181,11 +330,28 @@ void AiUpdate::ChooseColor()
      color->addButton(white, 0);
      color->addButton(black, 1);
 
+
+     order = new QButtonGroup();
+
+     first = new QRadioButton("玩家先手", this);
+     last = new QRadioButton("电脑先手", this);
+     first->setGeometry(680, 50, 100, 20);
+     last->setGeometry(800, 50, 100, 20);
+     first->setFont(QFont(QString::fromLocal8Bit("微软雅黑"), 13));
+     last->setFont(QFont(QString::fromLocal8Bit("微软雅黑"), 13));
+     first->show();
+     last->show();
+
+     order->addButton(first, 0);
+     order->addButton(last, 1);
+
      connect(white, SIGNAL(clicked(bool)), this, SLOT(Choose()));
      connect(black, SIGNAL(clicked(bool)), this, SLOT(Choose()));
+     connect(first, SIGNAL(clicked(bool)), this, SLOT(Choose1()));
+     connect(last, SIGNAL(clicked(bool)), this, SLOT(Choose1()));
 
      start = new QPushButton("start", this);
-     start->setGeometry(750, 80, 60, 30);
+     start->setGeometry(750, 100, 60, 30);
      start->show();
      start->setDisabled(true);
      start->setFont(QFont(QString::fromLocal8Bit("微软雅黑"), 13));
@@ -201,7 +367,7 @@ void AiUpdate::Score(int a, int b)
     //剪枝，不需计算整个棋盘，只要重新计算可能被该点影响到的点
     //即只要计算以该点为中心的星射线上的4*8个点
     int newx, newy;
-    for(int i = 1; i < 15; i++) {
+    for(int i = 1; i < 5; i++) {
 
         //按四个方向进行找点计算
 
@@ -280,6 +446,7 @@ bool AiUpdate::isLegal(int a,int b)
     }
     return false;
 }
+
 
 
 //左上-右下
@@ -834,8 +1001,16 @@ void AiUpdate::dir4(int newx, int newy)
 
 }
 
+
 void AiUpdate::AIPlay()
 {
+    undo->setDisabled(false);
+
+    //倒计时
+    delete timer;
+    timer = new QTimer();
+    Timer();
+
     int tempx = 0, tempy = 0;
     for(int i = 0; i < 15; i++) {
         for(int j = 0; j < 15; j++) {
@@ -848,9 +1023,25 @@ void AiUpdate::AIPlay()
     chessboard[tempx][tempy] = -1 * player;
     scoreboard[tempx][tempy][0]= -10;
 
+    px = (tempx + 1) * 40;
+    py = (tempy + 1) * 40;
+
+    if(totalcnt > 250 * listcnt) {
+        listcnt++;
+        Point *temp = new Point[listcnt * 250];
+        for(int i = 0; i < totalcnt; i++) {
+            temp[i] = list[i];
+        }
+        delete list;
+        list = temp;
+    }
+    stk.push(totalcnt);   //入栈
+    list[totalcnt++].setP(tempx, tempy, px, py, -1);
+
     update();
 
     if(JudgeWin(tempx, tempy)) {
+        timer->stop();
         setEnabled(false);
         QString ss;
         if(player == -1) {
@@ -882,6 +1073,51 @@ void AiUpdate::AIPlay()
 
     }
 
+    //判断是否平局
+    full = 1;  //先设棋盘已满
+    for(int i = 0; i < 15; i++) {
+        for(int j = 0; j < 15; j++) {
+            if(!chessboard[i][j]) {
+                full = 0; //棋盘未满
+                break;
+            }
+        }
+        if(full == 0) {
+            break;
+        }
+    }
+    if(full == 1) {  //若棋盘已满
+        update();
+        timer->stop();
+        setEnabled(false);
+
+        subWin = new QDialog();
+        QPushButton *btn = new QPushButton(subWin);
+        QLabel *infolabel = new QLabel(subWin);
+
+        infolabel->setText("平局");
+        infolabel->setFont(QFont(QString::fromLocal8Bit("微软雅黑"), 13));
+        infolabel->setGeometry(80, 25, 142, 40);
+        infolabel->show();
+
+        btn->setText("OK");
+        btn->setFont(QFont(QString::fromLocal8Bit("微软雅黑"), 13));
+        btn->setGeometry(110, 80, 80, 30);
+        btn->show();
+
+        subWin->setWindowFlags(Qt::WindowStaysOnTopHint);
+        subWin->setFixedSize(300, 150);
+        subWin->setWindowTitle("对局结束");
+
+        subWin->show();
+
+        connect(btn, SIGNAL(clicked(bool)), this, SLOT(Exit()));
+
+        return;
+
+       // QMessageBox::information(this, "Win", "平局！", QMessageBox::Ok);
+    }
+
     Score(tempx, tempy);
 
 }
@@ -890,6 +1126,10 @@ void AiUpdate::AIPlay()
 bool AiUpdate::JudgeWin(int x, int y)
 {
     int cnt = 1;
+    firx = x;
+    firy = y;
+    lasx = x;
+    lasy = y;
 
     //判断纵向
     for(int i = 1; i < 5; i++) {
@@ -898,6 +1138,9 @@ bool AiUpdate::JudgeWin(int x, int y)
         }
         if(chessboard[x][y - i] == chessboard[x][y]) {
             cnt++;
+            firx = x;
+            firy = y - i;
+
         } else {
             break;
         }
@@ -908,11 +1151,17 @@ bool AiUpdate::JudgeWin(int x, int y)
         }
         if(chessboard[x][y + i] == chessboard[x][y]) {
             cnt++;
+            lasx = x;
+            lasy = y + i;
         } else {
             break;
         }
     }
     if(cnt >= 5) {
+        firx = (firx + 1) * 40;
+        firy = (firy + 1) * 40;
+        lasx = (lasx + 1) * 40;
+        lasy = (lasy + 1) * 40;
         return true;
     } else {
         cnt = 1;
@@ -925,6 +1174,8 @@ bool AiUpdate::JudgeWin(int x, int y)
         }
         if(chessboard[x - i][y] == chessboard[x][y]) {
             cnt++;
+            firx = x - i;
+            firy = y;
         } else {
             break;
         }
@@ -935,11 +1186,17 @@ bool AiUpdate::JudgeWin(int x, int y)
         }
         if(chessboard[x + i][y] == chessboard[x][y]) {
             cnt++;
+            lasx = x + i;
+            lasy = y;
         } else {
             break;
         }
     }
     if(cnt >= 5) {
+        firx = (firx + 1) * 40;
+        firy = (firy + 1) * 40;
+        lasx = (lasx + 1) * 40;
+        lasy = (lasy + 1) * 40;
         return true;
     } else {
         cnt = 1;
@@ -953,6 +1210,8 @@ bool AiUpdate::JudgeWin(int x, int y)
         }
         if(chessboard[x + i][y - i] == chessboard[x][y]) {
             cnt++;
+            firx = x + i;
+            firy = y - i;
         } else {
             break;
         }
@@ -963,11 +1222,17 @@ bool AiUpdate::JudgeWin(int x, int y)
         }
         if(chessboard[x - i][y + i] == chessboard[x][y]) {
             cnt++;
+            lasx = x - i;
+            lasy = y + i;
         } else {
             break;
         }
     }
     if(cnt >= 5) {
+        firx = (firx + 1) * 40;
+        firy = (firy + 1) * 40;
+        lasx = (lasx + 1) * 40;
+        lasy = (lasy + 1) * 40;
         return true;
     } else {
         cnt = 1;
@@ -981,6 +1246,8 @@ bool AiUpdate::JudgeWin(int x, int y)
         }
         if(chessboard[x - i][y - i] == chessboard[x][y]) {
             cnt++;
+            firx = x - i;
+            firy = y - i;
         } else {
             break;
         }
@@ -991,11 +1258,17 @@ bool AiUpdate::JudgeWin(int x, int y)
         }
         if(chessboard[x + i][y + i] == chessboard[x][y]) {
             cnt++;
+            lasx = x + i;
+            lasy = y + i;
         } else {
             break;
         }
     }
     if(cnt >= 5) {
+        firx = (firx + 1) * 40;
+        firy = (firy + 1) * 40;
+        lasx = (lasx + 1) * 40;
+        lasy = (lasy + 1) * 40;
         return true;
     } else {
         cnt = 1;
@@ -1006,9 +1279,96 @@ bool AiUpdate::JudgeWin(int x, int y)
 }
 
 
+//计时器
+void AiUpdate::Timer()
+{
+    countdown = 30;  //时间重置
+
+    QPalette lcdpat = lcdNumber->palette();
+    lcdpat.setColor(QPalette::Normal,QPalette::WindowText,Qt::black);
+    lcdNumber->setPalette(lcdpat);
+
+    timecounter = 0;
+
+    timer->start();
+    connect(timer, SIGNAL(timeout()), this, SLOT(CountDown()));
+    timer->setInterval(10);  //每10ms发射一个timeout信号
+
+}
+
+//倒计时
+void AiUpdate::CountDown()
+ {
+
+    timecounter += 10;
+    QString strTime = QString::number(countdown);
+    lcdNumber->display(strTime);  //显示时间
+
+    QPalette lcdpat = lcdNumber->palette();
+
+    if(countdown > 5) {
+        if(timecounter < 1000) {
+            return ;
+        }
+    }
+
+    if(countdown <= 5) {
+
+        if(timecounter == 10) {
+            QSound::play(":/countdown.wav");
+        }
+
+        //闪烁频率0.2s
+        if(timecounter % 200 != 0) {
+            if(timecounter < 1000) {
+                return ;
+            }
+        } else {
+            if(timecounter  % 400 == 0) {
+                lcdpat.setColor(QPalette::Normal,QPalette::WindowText,Qt::black);
+                lcdNumber->setPalette(lcdpat);
+            } else {
+                lcdpat.setColor(QPalette::Normal,QPalette::WindowText,Qt::red);
+                lcdNumber->setPalette(lcdpat);
+            }
+
+        }
+
+        if(timecounter < 1000) {
+            return ;
+        }
+    }
+
+    if(countdown != 0) {
+        countdown -= 1;
+    } else {
+        //timer->stop();
+        countdown = 30;
+        lcdpat.setColor(QPalette::Normal,QPalette::WindowText,Qt::black);
+        lcdNumber->setPalette(lcdpat);
+        AIPlay();
+       // Timer();
+    }
+
+    timecounter = 0;
+
+}
+
+
 void AiUpdate::Choose()
 {
-    start->setDisabled(false);
+    colorchosen = 1;
+    if(colorchosen == 1 && orderchosen == 1) {
+        start->setDisabled(false);
+    }
+}
+
+void AiUpdate::Choose1()
+{
+    orderchosen = 1;
+    if(colorchosen == 1 && orderchosen == 1) {
+        start->setDisabled(false);
+    }
 }
 
 
@@ -1018,6 +1378,9 @@ void AiUpdate::Start()
     delete start;
     white->setDisabled(true);
     black->setDisabled(true);
+    first->setDisabled(true);
+    last->setDisabled(true);
+
     flag = 1;
 
     if(color->checkedId() == 0) {
@@ -1026,5 +1389,136 @@ void AiUpdate::Start()
         player = 1;
     }
 
+    label = new QLabel(this);
+    label->setText("行棋倒计时");
+    label->setGeometry(700, 140, 100, 30);
+    label->setFont(QFont(QString::fromLocal8Bit("微软雅黑"), 13));
+    label->show();
+
+    lcdNumber = new QLCDNumber(this);
+    lcdNumber->setGeometry(820, 140, 60, 30);
+    lcdNumber->setDigitCount(2);
+    lcdNumber->setSegmentStyle(QLCDNumber::Flat);
+    lcdNumber->show();
+
+    timer = new QTimer();
+    Timer();
+
+    undo = new QPushButton(this);
+    undo->setText("悔棋");
+    undo->setGeometry(750, 300, 80, 30);
+    undo->setFont(QFont(QString::fromLocal8Bit("微软雅黑"), 13));
+    undo->setDisabled(true);
+    undo->show();
+    connect(undo, SIGNAL(clicked(bool)), this, SLOT(Undo()));
+
+    if(order->checkedId() == 1) {
+        //玩家下棋后1s电脑下棋、延时
+        QTime dieTime = QTime::currentTime().addMSecs(1000);
+        while(QTime::currentTime() < dieTime)
+        QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
+
+        AIPlay();
+    }
+
     //qDebug() << QString::number(color->checkedId()) << endl;
 }
+
+void AiUpdate::Undo()
+{
+    int p1, p2, tempx1, tempy1, tempx2, tempy2;
+    p1 = stk.peek();
+    p2 = stk.peek2();
+
+    tempx1 = list[p1].getX();
+    tempy1 = list[p1].getY();
+    chessboard[tempx1][tempy1] = 0;
+    Score(tempx1, tempy1);
+    stk.pop();
+
+    if(list[p1].getColor() != list[p2].getColor()) {
+        tempx2 = list[p2].getX();
+        tempy2 = list[p2].getY();
+        chessboard[tempx2][tempy2] = 0;
+        Score(tempx2, tempy2);
+        stk.pop();
+    }
+
+    countdown = 30;
+    //chessboard[][]
+
+    update();
+
+}
+
+//点击OK退出子窗口
+void AiUpdate::Exit()
+{
+    subWin->close();
+    setEnabled(true);
+
+    clear = new QPushButton(this);
+    clear->setText("再来一局");
+    clear->setFont(QFont(QString::fromLocal8Bit("微软雅黑"), 13));
+    clear->setGeometry(695, 400, 100, 30);
+    clear->show();
+
+    undo->setEnabled(false);
+    flag = 0;
+
+
+    connect(clear, SIGNAL(clicked(bool)), this, SLOT(Again()));
+
+    back = new QPushButton(this);
+    back->setText("返回");
+    back->setFont(QFont(QString::fromLocal8Bit("微软雅黑"), 13));
+    back->setGeometry(835, 400, 60, 30);
+    back->show();
+    connect(back, SIGNAL(clicked(bool)), this, SLOT(onBackClicked()));
+}
+
+//再玩一局
+void AiUpdate::Again()
+{
+    /*
+    PlayWithSelf *again = new PlayWithSelf();
+    again->show();
+    this->close();
+*/
+    full = 1;
+    wx = -20;    wy = -20;
+    bx = -20;    by = -20;
+    firx = 0;    firy = 0;
+    lasx = 0;    lasy = 0;
+
+    memset(chessboard, 0, sizeof(chessboard));
+    memset(scoreboard, 0, sizeof(scoreboard));
+    player = 1;
+    flag = 0;
+    initValue();
+    colorchosen = 0;
+    orderchosen = 0;
+
+    ChooseColor();
+
+
+    delete timer;
+    delete label;
+    delete lcdNumber;
+    delete undo;
+    delete clear;
+    delete back;
+    stk.clear();
+    delete list;
+
+    update();
+
+}
+
+void AiUpdate::onBackClicked()
+{
+    this->close();
+    MainWindow *m = new MainWindow();
+    m->show();
+}
+

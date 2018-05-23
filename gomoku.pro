@@ -30,13 +30,17 @@ SOURCES += main.cpp\
     playwithself.cpp \
     aiselect.cpp \
     playwithai.cpp \
-    aiupdate.cpp
+    aiupdate.cpp \
+    point.cpp \
+    stack.cpp
 
 HEADERS  += mainwindow.h \
     playwithself.h \
     aiselect.h \
     playwithai.h \
-    aiupdate.h
+    aiupdate.h \
+    point.h \
+    stack.h
 
 FORMS    += mainwindow.ui \
     playwithself.ui \

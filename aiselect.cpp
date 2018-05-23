@@ -12,7 +12,7 @@ AISelect::AISelect(QWidget *parent) :
     QPushButton *button = new QPushButton(this);
     button->setText("Version1");
     button->setFont(QFont(QString::fromLocal8Bit("微软雅黑"), 13));
-    button->setGeometry(720, 200, 110, 40);
+    button->setGeometry(720, 230, 110, 40);
     button->show();
 
     connect(button, SIGNAL(clicked(bool)), this, SLOT(Play()));
@@ -20,7 +20,7 @@ AISelect::AISelect(QWidget *parent) :
     QPushButton *button1 = new QPushButton(this);
     button1->setText("Version2");
     button1->setFont(QFont(QString::fromLocal8Bit("微软雅黑"), 13));
-    button1->setGeometry(720, 320, 110, 40);
+    button1->setGeometry(720, 330, 110, 40);
     button1->show();
 
     connect(button1, SIGNAL(clicked(bool)), this, SLOT(Play1()));
@@ -38,6 +38,7 @@ void AISelect::paintEvent(QPaintEvent *)  //绘制棋盘
 {
     QPainter p(this);
 
+    p.drawPixmap(0, 0, 970, 640, QPixmap(":/background.jpg"));
 
     p.setRenderHint(QPainter::Antialiasing, true); //消除锯齿
 

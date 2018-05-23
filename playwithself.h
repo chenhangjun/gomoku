@@ -7,6 +7,8 @@
 #include <QtGui>
 #include <QLCDNumber>
 #include <QDialog>
+#include "stack.h"
+#include "point.h"
 
 namespace Ui {
 class PlayWithSelf;
@@ -54,7 +56,12 @@ private:
     int x, y; //鼠标对应位置的二维坐标
     int wx, wy, bx, by;  //黑白双方最后落子坐标
     int firx, firy, lasx, lasy;  //五子连珠始末坐标
-    int undowx,undowy, undobx, undoby;  //悔棋前备份
+    int px, py;
+    int totalcnt; //计数总棋子数
+    int listcnt;  //计数栈
+
+    Point *list;  //存入栈
+    Stack<int> stk;  //栈，悔棋用
 
     QPushButton *button;  //掷骰子按钮
     QPushButton *button1; //掷骰子结束后OK按钮

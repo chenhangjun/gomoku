@@ -2,7 +2,7 @@
 #include "ui_playwithself.h"
 #include <QSound>
 #include <cmath>
-#include "mainwindow.h"    //加在PlayWithSelf.h里会出错？ 只能在这里？
+#include "mainwindow.h"    //加在PlayWithSelf.h里会出错
 
 PlayWithSelf::PlayWithSelf(QWidget *parent) :
     QMainWindow(parent),
@@ -14,6 +14,11 @@ PlayWithSelf::PlayWithSelf(QWidget *parent) :
     bx = -20;    by = -20;
     firx = 0;    firy = 0;
     lasx = 0;    lasy = 0;
+
+    totalcnt = 0;
+    listcnt = 1;
+
+    list = new Point[250];
 
     setFixedSize(970, 640);
     memset(chessboard, 0, sizeof(chessboard));
@@ -95,6 +100,23 @@ void PlayWithSelf::paintEvent(QPaintEvent *)  //绘制棋盘
 */
     //最后落子定位
     p.setPen(QPen(Qt::red));
+
+    int p1, p2;
+    if(!stk.isEmpty()) {
+        p1 = stk.peek();
+        wx = list[p1].getPX();
+        wy = list[p1].getPY();
+    } else {
+        wx = -20;    wy = -20;
+    }
+    if(stk.Size() > 1) {
+        p2 = stk.peek2();
+        bx = list[p2].getPX();
+        by = list[p2].getPY();
+    } else{
+        bx = -20;    by = -20;
+    }
+
     p.drawLine(wx - 18, wy - 18, wx - 18, wy - 8);
     p.drawLine(wx - 18, wy - 18, wx - 8, wy - 18);
     p.drawLine(wx - 18, wy + 18, wx - 18, wy + 8);
@@ -164,19 +186,29 @@ void PlayWithSelf::mouseReleaseEvent(QMouseEvent *e)
             timer = new QTimer();
             Timer();
 
+            //数组是否满
+            if(totalcnt > 250 * listcnt) {
+                listcnt++;
+                Point *temp = new Point[listcnt * 250];
+                for(int i = 0; i < totalcnt; i++) {
+                    temp[i] = list[i];
+                }
+                delete list;
+                list = temp;
+            }
+            stk.push(totalcnt);   //入栈
+
             //显示当前行棋方
             if(player == -1) {
                 info2->setText("当前行棋方:       黑");
-                wx = (x + 1) * 40;
-                wy = (y + 1) * 40;
-                undobx = bx; //备份
-                undoby = by;
+                px = (x + 1) * 40;
+                py = (y + 1) * 40;
+                list[totalcnt++].setP(x, y, px, py, 1);
             } else {
                 info2->setText("当前行棋方:       白");
-                bx = (x + 1) * 40;
-                by = (y + 1) * 40;
-                undowx = wx;  //备份
-                undowy = wy;
+                px = (x + 1) * 40;
+                py = (y + 1) * 40;
+                list[totalcnt++].setP(x, y, px, py, -1);
             }
 
             chessboard[x][y] = player;
@@ -490,9 +522,9 @@ void PlayWithSelf::ShowStatus()
     undo->show();
     undo->setDisabled(true);
 
-    //时间触发
     connect(undo, SIGNAL(clicked(bool)), this, SLOT(Undo()));
 
+    //时间触发
     timer = new QTimer();
     Timer();
 
@@ -671,7 +703,14 @@ void PlayWithSelf::CountDown()
 
 void PlayWithSelf::Undo()
 {
-    chessboard[x][y] = 0;
+    int p, tempx, tempy;
+    p = stk.peek();
+
+    tempx = list[p].getX();
+    tempy = list[p].getY();
+    chessboard[tempx][tempy] = 0;
+    stk.pop();
+
     if(player == 1) {
         player = -1;
         info2->setText("当前行棋方:       白");
@@ -679,11 +718,9 @@ void PlayWithSelf::Undo()
         player= 1;
         info2->setText("当前行棋方:       黑");
     }
+
     countdown = 30;
-    wx = undowx;
-    wy = undowy;
-    bx = undobx;
-    by = undoby;
+
     update();
 
 }
@@ -693,7 +730,7 @@ void PlayWithSelf::Exit()
 {
     subWin->close();
     setEnabled(true);
-    //一下两个按钮本该在Exit()槽函数里的，防止btn的误关操作，导致无法返回
+
     clear = new QPushButton(this);
     clear->setText("再来一局");
     clear->setFont(QFont(QString::fromLocal8Bit("微软雅黑"), 13));
