@@ -10,6 +10,7 @@ PlayWithAI::PlayWithAI(QWidget *parent) :
     ui(new Ui::PlayWithAI)
 {
     ui->setupUi(this);
+    this->setWindowTitle("Version1");
     setFixedSize(970, 640);
 
     full = 1;

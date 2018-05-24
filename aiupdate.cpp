@@ -10,6 +10,7 @@ AiUpdate::AiUpdate(QWidget *parent) :
     ui(new Ui::AiUpdate)
 {
     ui->setupUi(this);
+    this->setWindowTitle("Version2");
     setFixedSize(970, 640);
 
     full = 1;

@@ -8,6 +8,7 @@ PlayWithSelf::PlayWithSelf(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::PlayWithSelf)
 {
+    this->setWindowTitle("单人自弈");
     flag = 0;
     full = 1;
     wx = -20;    wy = -20;

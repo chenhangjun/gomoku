@@ -9,6 +9,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    this->setWindowTitle("五棋子");
 
     QPushButton *button1 = ui->pushButton;
     button1->setText("玩家对弈");

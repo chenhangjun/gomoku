@@ -9,6 +9,7 @@ AISelect::AISelect(QWidget *parent) :
     ui(new Ui::AISelect)
 {
     ui->setupUi(this);
+    this->setWindowTitle("人机对弈");
     QPushButton *button = new QPushButton(this);
     button->setText("Version1");
     button->setFont(QFont(QString::fromLocal8Bit("微软雅黑"), 13));
