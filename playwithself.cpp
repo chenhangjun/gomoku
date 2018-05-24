@@ -781,6 +781,7 @@ void PlayWithSelf::Again()
     delete back;
     stk.clear();
     delete list;
+    list = new Point[250];
 
     PlayRandom();
 

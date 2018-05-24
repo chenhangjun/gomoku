@@ -1513,6 +1513,7 @@ void AiUpdate::Again()
     delete back;
     stk.clear();
     delete list;
+    list = new Point[250];
 
     update();
 
